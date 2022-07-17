@@ -1,0 +1,26 @@
+.data
+	A: .word 5
+	B: .word 2
+	nl: .asciiz "\n"
+.text
+	lw $t0, A
+	lw $t1, B
+	div $t0, $t1
+	mflo $s0	# lo 출력 = 2
+	mfhi $s1	# hi 출력 = 1
+	
+	move $a0, $s0
+	li $v0, 1	
+	syscall
+		
+	la $a0, nl
+	li $v0, 4
+	syscall
+	
+	move $a0, $s1
+	li $v0, 1
+	syscall
+
+	
+	li $v0, 10
+	syscall

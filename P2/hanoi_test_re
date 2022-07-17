@@ -1,0 +1,134 @@
+.data
+	a: .asciiz "A"
+	bb: .asciiz "B"
+	c: .asciiz "C"
+	movedisk: .asciiz "move disk "
+	from: .asciiz " from "
+	to: .asciiz " to "
+	newline: .asciiz "\n"
+.macro print($id, $from, $to)
+	la $a0, movedisk
+	li $v0, 4
+	syscall
+	
+	la $a0, ($id)
+	li $v0, 1
+	syscall
+	
+	la $a0, from
+	li $v0, 4
+	syscall
+	
+	lb $a0, ($from)
+	li $v0, 4
+	syscall
+	
+	la $a0, to
+	li $v0, 4
+	syscall
+	
+	lb $a0, ($to)
+	li $v0, 4
+	syscall	
+	
+	la $a0, newline
+	li $v0, 4
+	syscall
+.end_macro 
+.text
+	li $v0, 5	
+	syscall
+	move $s0, $v0	#scanf(n) // n = base
+	
+	lb $a1, a	# from
+	lb $a2, bb	# via
+	lb $a3, c	# to
+	addi $t1, $s0, 0
+	jal hanoi	# hanoi(n, 'A', 'B', 'C');
+	
+	li $v0, 10	#return 0;
+	syscall
+	
+	
+	
+hanoi:
+
+if:	#
+	bnez $t1, then
+	addi $t2, $a1, 0
+	addi $t3, $a2, 0
+	addi $t4, $a3, 0
+	print($t1, $a1, $a2)
+	print($t1, $a2, $a3)
+	
+	jr $ra
+then:	#
+	addi $t1, $t1, -1	#n = n-1
+	addi $sp, $sp, -20
+	sw $ra, 0($sp)		#saves return address
+	sw $t1, 4($sp)		#saves n on stack
+	sw $a1, 8($sp)		#saves peg 1 on stack
+	sw $a2, 12($sp)		#saves peg 2 on stack
+	sw $a3, 16($sp)		#saves peg 3 on stack
+	#
+	jal hanoi
+	lw $ra, 0($sp)		#loads return address
+	lw $a0, 4($sp)		#loads n
+	lw $a1, 8($sp)		#loads peg 1
+	lw $a2, 12($sp)		#loads peg 2
+	lw $a3, 16($sp)		#loads peg 3
+	add $sp, $sp, 20
+	#
+	addi $t1, $t1, 1
+	addi $t2, $a1, 0
+	addi $t3, $a2, 0
+	print($t1, $a1, $a2)
+	
+	#addi $t1, $s0, 0
+	addi $t1, $t1, -1	#n = n-1
+	move $t0, $a1
+	move $a1, $a2
+	move $a2, $a3
+	move $a3, $t0
+	addi $sp, $sp, -20
+	sw $ra, 0($sp)		#saves return address
+	sw $a0, 4($sp)		#saves n on stack
+	sw $a1, 8($sp)		#saves peg 1 on stack
+	sw $a2, 12($sp)		#saves peg 2 on stack
+	sw $a3, 16($sp)		#saves peg 3 on stack
+	jal hanoi
+	lw $ra, 0($sp)		#loads return address
+	lw $a0, 4($sp)		#loads n
+	lw $a1, 8($sp)		#loads peg 1
+	lw $a2, 12($sp)		#loads peg 2
+	lw $a3, 16($sp)		#loads peg 3
+	add $sp, $sp, 20
+	
+	addi $t1, $t1, 1
+	addi $t3, $a2, 0
+	addi $t4, $a3, 0
+	print($t1, $a2, $a3)
+	
+	addi $t1, $t1, -1	#n = n-1
+	move $t0, $a2
+	move $a1, $a3
+	move $a3, $a2
+	move $a3, $t0
+	addi $sp, $sp, -20
+	sw $ra, 0($sp)		
+	sw $a0, 4($sp)		
+	sw $a1, 8($sp)		
+	sw $a2, 12($sp)		
+	sw $a3, 16($sp)		
+	jal hanoi
+	lw $ra, 0($sp)		
+	lw $a0, 4($sp)		
+	lw $a1, 8($sp)		
+	lw $a2, 12($sp)		
+	lw $a3, 16($sp)		
+	add $sp, $sp, 20
+	
+	#addi $a0, $t1, 1	#n = n-1
+	
+hanoi_end:
+	jr $ra
