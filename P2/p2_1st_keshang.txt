@@ -1,4 +1,4 @@
-1. 이진탐색-binary search
+1. 이진탐색-binary search: 배열 입력받고, 찾는 key 입력받아서 각 key에 대해 있는지 없는지 출력
 
 #include <stdio.h>
 #include <stdlib.h>
