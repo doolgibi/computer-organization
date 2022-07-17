@@ -1,0 +1,97 @@
+.data
+ symbol: .space 28
+ array: .space 28
+ newLine: .asciiz "\n"
+ space: .asciiz " "
+ 
+.text
+ li $v0, 5 # scanf("%d", &n);
+ syscall  # ..
+ move $s0, $v0 # s0=n
+  
+ li $a1, 0  # a1=parameter=0
+ 
+ jal FullArray
+ 
+ li $v0, 10 # system end
+ syscall  # ..
+ 
+FullArray: 
+if:
+ li $t0, 0 # t0 = i
+ 
+ bge $a1, $s0, then
+ j second_for
+ 
+then:
+ beq $t0, $a1, printNL
+ j printAry
+ 
+printAry:
+ lb $a0, array($t0) # t1 = array[i]
+ #la $v0, $t3
+ 
+ addi $t0, $t0, 1 # i++
+ 
+ li $v0, 1  # printf(array[i])
+ syscall
+ 
+ li $v0, 4  # printf(" ")
+ la $a0, space
+ syscall
+ 
+ j then
+ 
+printNL:
+ li $v0, 4  # printf("\n")
+ la $a0, newLine
+ syscall
+ 
+ jr $ra
+ 
+second_for:
+ li $t0, 0 # t0 = i
+ 
+second_for2: 
+ bge $t0, $s0, second_end # if (i == n) should return;
+ # j second_if # this jump is unnecessary
+ 
+second_if:
+ lb $t5, symbol($t0)
+ bnez $t5, second_next
+
+second_then:
+ addi $t1, $t0, 1
+ sb $t1, array($a1) # array[index] = i+1;
+ 
+ li $t2, 1
+ sb $t2, symbol($t0)  # symbol[i] = 1;
+ 
+ ############재귀함수 call 하기 전엔 현재 변수를 스택에 쌓아 저장해야함
+ # You should protect registers here: push them into stack
+ # protect: $ra, i($t0), index($a1)
+ ### 스택에 값을 n개 넣을 경우 n*-4만큼 할당해주면 된다 
+ addi $sp, $sp, -12	###따라서 3개 넣으니까 3*-4=-12
+ sw $ra, 8($sp)
+ sw $t0, 4($sp)
+ sw $a1, 0($sp)
+ 
+ addi $a1, $a1, 1
+ jal FullArray  # FullArray(index+1);
+ 
+ ############재귀함수 return 되면 저장한 변수를 레지스터에 저장해야함
+ # restore registers here
+ lw $a1, 0($sp)
+ lw $t0, 4($sp)
+ lw $ra, 8($sp)
+ addi $sp, $sp, 12
+ 
+ li $t4, 0
+ sb $t4, symbol($t0) # symbol[i] = 0;
+
+second_next:
+ addi $t0, $t0, 1 # i++
+ j second_for2
+
+second_end:
+ jr $ra

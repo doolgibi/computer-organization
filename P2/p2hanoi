@@ -1,0 +1,23 @@
+.data
+	A: .asciiz "A"
+	B: .asciiz "B"
+	C: .asciiz "C"
+	
+	movedisk: .asciiz "move disk "
+	from: .asciiz " from "
+	to: .asciiz "to "
+	newline: .asciiz "\n"
+.text
+	li $v0, 5
+	syscall
+	move $s0, $v0
+	la $t1, A
+	la $t2, B
+	la $t3, C
+	jal hanoi
+	
+	li $v0, 10
+	syscall
+	
+hanoi:
+	
