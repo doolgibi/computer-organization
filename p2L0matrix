@@ -1,0 +1,99 @@
+.data
+	arrayA:	.space 324	#int matirx[9][9] -> 9*9*4 byte
+	arrayB:	.space 324	#int matirx[9][9] -> 9*9*4 byte
+	mulAry:	.space 324	#int matirx[9][9] -> 9*9*4 byte
+
+	newline: 	.asciiz "\n"
+	space:	.asciiz " "
+	
+.macro	getindex(%ans, %i, %j)
+	sll %ans, %i, 3		# %ans = %i * 8
+	add %ans, %ans, %j	# %ans = %ans + %j
+	sll %ans, %ans, 2	# %ans = %ans * 4
+.end_macro
+
+.text
+	li $v0, 5 # scanf("%d", &n);
+	syscall  # ..
+	move $s0, $v0 # s0=n
+
+# arrayA 입력받기
+in_iA:
+	beq $t0, $s0, in_i_endA
+	li $t1, 0
+in_jA:
+	beq $t1, $s0, in_j_endA
+	li $v0, 5
+	syscall
+	getindex($t2, $t0, $t1)
+	sw $v0, arrayA($t2)
+	addi $t1, $t1, 1
+	j in_jA
+in_j_endA:
+	addi $t0, $t0, 1
+	j in_iA
+	
+# arrayA 다 입력받고, arrayB 입력받기
+in_i_endA:
+	li $t0, 0
+	
+in_iB:
+	beq $t0, $s0, in_i_endB
+	li $t1, 0
+in_jB:
+	beq $t1, $s0, in_j_endB
+	li $v0, 5
+	syscall
+	getindex($t2, $t0, $t1)
+	sw $v0, arrayB($t2)
+	addi $t1, $t1, 1
+	j in_jB
+in_j_endB:
+	addi $t0, $t0, 1
+	j in_iB
+in_i_endB:
+	li $t0, 0
+	
+# 행렬 곱 구현
+mul_i:
+	beq $t0, $s0, mul_i_end		# if(i==n) go to i_end // for(i<n)
+	li $t1, 0		# t1=j=0
+mul_j:
+	beq $t1, $s0, mul_j_end		# if(j==n) go to j_end // for (j<n)
+	li $t3, 0	# t3 = k
+	li $t4, 0	# t4 = sum
+mul_k:
+	beq $t3, $s0, mul_k_end		# if(k==n) go to k_end // for (k<n)
+	getindex($t5, $t0, $t3)		
+	lw $a0, arrayA($t5)
+	getindex($t6, $t3, $t1)
+	lw $a1, arrayB($t6)
+	mul $t7, $a0, $a1
+	add $t4, $t4, $t7
+	addi $t3, $t3, 1	# k++
+	j mul_k		# k순환
+mul_k_end:
+	getindex($t2, $t0, $t1)
+	lw $a0, mulAry($t2)
+	
+	add $a0, $t4, 0
+	#lw $t4, $a0
+	#move $a0, $t4
+	li $v0, 1
+	syscall
+	
+	la $a0, space
+	li $v0, 4
+	syscall
+	
+	addi $t1, $t1, 1
+	j mul_j
+mul_j_end:
+	la $a0, newline
+	li $v0, 4
+	syscall
+	addi $t0, $t0, 1
+	j mul_i
+mul_i_end:
+	li $v0, 10
+	syscall
