@@ -39,13 +39,19 @@ key_in:
 	j key_in
 key_in_end:
 	li $a0, 0
+	
+	subi $sp, $sp, 4	
+	sw $ra, 0($sp)
 	jal bsearch	
+	
+	lw $ra, 0($sp)
+	addi $sp, $sp, 4
+	
 exit:
 	li $v0, 10
 	syscall
 bsearch:
-	subi $sp, $sp, 4	
-	sw $ra, 0($sp)
+
 	
 	li $t0, 0
 for:
@@ -64,7 +70,7 @@ while:
 	div $t6, $s7		# mid = (low+high)/2
 if:	# key < a[mid]
 	mflo $t3		# div 된거 처리 해서 넣어줘야함
-	lw $s3, arr($t7)	
+	lw $s3, arr($t3)	
 	lbu $s4, key($t0)	#######왜 여기서 오류가 나지? -> lbu사용해야함!!!
 	beq $s3, $s4, elseif2
 	bgt $s3, $s4, elseif1
