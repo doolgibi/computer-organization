@@ -1,0 +1,78 @@
+
+# N행 M열 입력받고, N*M숫자 입력받고, 해당 2차원 배열 출력하는 프로그램
+
+.data
+	matrix:	.space 256	#int matirx[8][8] -> 8*8*4 byte
+	str_enter: 	.asciiz "\n"
+	str_space:	.asciiz " "
+	
+# 매크로 사용!!
+# %i: 현재 행수 저장하는 레지스터, %j는 현재 열을 저장하는 레지스터
+# (%i * 8 + %j) * 4를 %ans레지스터에 저장
+.macro	getindex(%ans, %i, %j)
+	sll %ans, %i, 3		# %ans = %i * 8
+	add %ans, %ans, %j	# %ans = %ans + %j
+	sll %ans, %ans, 2	# %ans = %ans * 4
+.end_macro
+
+.text
+	li $v0, 5	# 행 scanf
+	syscall
+	move $s0, $v0	# s0 = 행 n
+	
+	li $v0, 5	# 열 scanf
+	syscall
+	move $s1, $v0	# s1 = 열 m
+	
+	li $t0, 0	# t0 = i = 0
+	
+in_i:	# 첫번째 for문 i
+	beq $t0, $s0, in_i_end	# if(i==n),go to end // for(i<n)
+	li $t1, 0	# t1 = j = 0
+	
+in_j:	# 두번째 for문 j
+	beq $t1, $s1, in_j_end	# if(j==m),go to end // for(j<m)
+	li $v0, 5	# n*m숫자 scanf
+	syscall		# ..
+	getindex($t2, $t0, $t1)	# $t2,i,j // i,j 넣어서 index($t2)값 구해오기
+	sw $v0, matrix($t2)	# matrix($t2) = v0 // 위 scan에서 받은 값 matrx(해당 index)에 넣기
+	addi $t1, $t1, 1	# j++
+	j in_j	# j 순환
+
+in_j_end:
+	addi $t0, $t0, 1	# i++
+	j in_i			# i 순환	 // for j문 다 끝나서 i문 돌아야함
+
+in_i_end:
+	li $t0, 0	# t0 = i = 0	// i,j 다 끝나서 다음 코드(프린트) 실행
+
+# printf 코드 실행	
+out_i:
+	beq $t0, $s0, out_i_end		# if(i==n),go to end // for(i<n)
+	li $t1, 0	# t1=j=0
+	
+out_j:
+	beq $t1, $s1, out_j_end		# if(j==m),go to end // for(j<m)
+	getindex($t2, $t0, $t1)	# $t2,i,j // i,j 넣어서 index($t2)값 구해오기
+	lw $a0, matrix($t2)	
+	li $v0, 1		# a0 -> v0 // 배열 속 숫자 출력
+	syscall
+	
+	la $a0, str_space	# 공백 출력
+	li $v0, 4
+	syscall
+	
+	addi $t1, $t1, 1	# j++
+	j out_j		# j순환
+	
+out_j_end:
+	la $a0, str_enter	# 한 행 끝나고 newline 출력
+	li $v0, 4
+	syscall
+	
+	addi $t0, $t0, 1	# i++	
+	j out_i		# i순환
+	
+out_i_end:
+	li $v0, 10	# 프로그램 종료
+	syscall

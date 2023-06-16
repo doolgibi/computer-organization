@@ -1,0 +1,106 @@
+.data
+	arr: .space 4000
+	key: .space 4000
+	suc: .asciiz "1"
+	fail: .asciiz "0"
+	newline: .asciiz "\n"
+.text
+	li $v0, 5
+	syscall
+	move $s0, $v0	#n
+
+	li $t0, 0
+ary_in:
+	beq $t0, $s0, ary_in_end	# t0= i
+	li $v0, 5
+	syscall
+	sll $t1, $t0, 2
+	sw $v0, arr($t1)	# arr[i]에 값 넣기
+	addi $t0, $t0, 1	# i++
+	j ary_in
+ary_in_end:
+	li $a0, 0
+	subi $t0, $s0, 1	#i = n-1
+	move $a1, $t0		# a1 = i = n-1
+	jal bsearch	
+
+	li $t0, 0		# i = 0
+key_scan:
+	li $v0, 5
+	syscall
+	move $s1, $v0	#m
+key_in:
+	beq $t0, $s1, key_in_end	# t0= i
+	li $v0, 5
+	syscall
+	sll $t1, $t0, 2
+	sw $v0, key($t1)	# key[i]에 값 넣기
+	addi $t0, $t0, 1	# i++
+	j key_in
+key_in_end:
+	li $a0, 0
+	
+	subi $sp, $sp, 4	
+	sw $ra, 0($sp)
+	jal bsearch	
+	
+	lw $ra, 0($sp)
+	addi $sp, $sp, 4
+	
+exit:
+	li $v0, 10
+	syscall
+bsearch:
+
+	
+	li $t0, 0
+for:
+	beq $t0, $s1, return
+	# low-t1, high-t2, mid-t3 // cnt-t4, cnt1-t5
+	li $t1, 0
+	li $t3, 0
+	li $t4, 0
+	li $t5, 0
+	subi $t2, $s0, 1	# high = n-1
+while:
+	bgt $t1, $t2, while_end		# if low > high, then while_end
+	addi $t4, $t4, 1	#cnt++
+	add $t6, $t1, $t2
+	li $s7, 2
+	div $t6, $s7		# mid = (low+high)/2
+if:	# key < a[mid]
+	mflo $t3		# div 된거 처리 해서 넣어줘야함
+	lw $s3, arr($t3)	
+	lbu $s4, key($t0)	#######왜 여기서 오류가 나지? -> lbu사용해야함!!!
+	beq $s3, $s4, elseif2
+	bgt $s3, $s4, elseif1
+	subi $t2, $t3, 1
+	j while
+elseif1:	#key > a[mid]
+	addi $t1, $t3, 1
+	j while
+elseif2:	#key == a[mid]
+	la $a0, suc	# print("1")
+	li $v0, 4
+	syscall
+	la $a0, newline	# \n
+	li $v0, 4
+	syscall
+	addi $t5, $t5, 1
+	j while_end
+	
+while_end:
+	addi $t0, $t0, 1
+	bnez $t5, for
+	la $a0, fail	# print("0")
+	li $v0, 4
+	syscall
+	la $a0, newline	# \n
+	li $v0, 4
+	syscall
+	
+	j for
+	
+return:
+	jr $ra
+	
